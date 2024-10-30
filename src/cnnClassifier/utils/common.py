@@ -1,144 +1,138 @@
-# Import necessary modules
-import os  # For interacting with the operating system, e.g., file handling
-from box.exceptions import BoxValueError  # Exception class for handling specific errors from 'Box'
-import yaml  # For parsing and handling YAML files
-from cnnClassifier import logger  # Custom logger for logging messages (assumed to be in cnnClassifier module)
-import json  # For reading and writing JSON files
-import joblib  # For saving and loading binary files (pickle-like)
-from ensure import ensure_annotations  # Ensures function annotations for parameter validation
-from box import ConfigBox  # Provides a dictionary-like object with attribute-style access
-from pathlib import Path  # For easy handling of file system paths
-from typing import Any  # For specifying dynamic data types in annotations
-import base64  # For encoding and decoding binary data as base64 strings
+import os
+from box.exceptions import BoxValueError
+import yaml
+from cnnClassifier import logger
+import json
+import joblib
+from ensure import ensure_annotations
+from box import ConfigBox
+from pathlib import Path
+from typing import Any
+import base64
 
 
-# Define a function to read YAML files with strict type annotations
+
 @ensure_annotations
 def read_yaml(path_to_yaml: Path) -> ConfigBox:
-    """Reads a YAML file and returns its content.
+    """reads yaml file and returns
 
     Args:
-        path_to_yaml (Path): The file path to the YAML file
+        path_to_yaml (str): path like input
 
     Raises:
-        ValueError: If the YAML file is empty
-        e: Any other exceptions
+        ValueError: if yaml file is empty
+        e: empty file
 
     Returns:
-        ConfigBox: The loaded YAML content as a ConfigBox object
+        ConfigBox: ConfigBox type
     """
     try:
-        with open(path_to_yaml) as yaml_file:  # Open the YAML file for reading
-            content = yaml.safe_load(yaml_file)  # Safely load the YAML content
-            logger.info(f"yaml file: {path_to_yaml} loaded successfully")  # Log successful load
-            return ConfigBox(content)  # Return content as ConfigBox
-    except BoxValueError:  # Handle empty YAML file error
+        with open(path_to_yaml) as yaml_file:
+            content = yaml.safe_load(yaml_file)
+            logger.info(f"yaml file: {path_to_yaml} loaded successfully")
+            return ConfigBox(content)
+    except BoxValueError:
         raise ValueError("yaml file is empty")
-    except Exception as e:  # Handle any other exceptions
+    except Exception as e:
         raise e
+    
 
 
-# Define a function to create directories with type annotations
 @ensure_annotations
 def create_directories(path_to_directories: list, verbose=True):
-    """Creates a list of directories.
+    """create list of directories
 
     Args:
-        path_to_directories (list): List of directory paths to be created
-        verbose (bool): If True, logs each directory creation
+        path_to_directories (list): list of path of directories
+        ignore_log (bool, optional): ignore if multiple dirs is to be created. Defaults to False.
     """
-    for path in path_to_directories:  # Iterate over directory paths
-        os.makedirs(path, exist_ok=True)  # Create directory; do nothing if it exists
-        if verbose:  # Log if verbose is True
+    for path in path_to_directories:
+        os.makedirs(path, exist_ok=True)
+        if verbose:
             logger.info(f"created directory at: {path}")
 
 
-# Define a function to save data to a JSON file
 @ensure_annotations
 def save_json(path: Path, data: dict):
-    """Saves data to a JSON file.
+    """save json data
 
     Args:
-        path (Path): The file path to save the JSON data
-        data (dict): Data to be saved in the JSON file
+        path (Path): path to json file
+        data (dict): data to be saved in json file
     """
-    with open(path, "w") as f:  # Open file in write mode
-        json.dump(data, f, indent=4)  # Dump data into JSON format with indentation
+    with open(path, "w") as f:
+        json.dump(data, f, indent=4)
 
-    logger.info(f"json file saved at: {path}")  # Log successful save
+    logger.info(f"json file saved at: {path}")
 
 
-# Define a function to load data from a JSON file
+
+
 @ensure_annotations
 def load_json(path: Path) -> ConfigBox:
-    """Loads data from a JSON file.
+    """load json files data
 
     Args:
-        path (Path): The file path to the JSON file
+        path (Path): path to json file
 
     Returns:
-        ConfigBox: The loaded data with attribute-style access
+        ConfigBox: data as class attributes instead of dict
     """
-    with open(path) as f:  # Open file in read mode
-        content = json.load(f)  # Load JSON content
+    with open(path) as f:
+        content = json.load(f)
 
-    logger.info(f"json file loaded successfully from: {path}")  # Log successful load
-    return ConfigBox(content)  # Return data as ConfigBox
+    logger.info(f"json file loaded succesfully from: {path}")
+    return ConfigBox(content)
 
 
-# Define a function to save data in binary format
 @ensure_annotations
 def save_bin(data: Any, path: Path):
-    """Saves data as a binary file.
+    """save binary file
 
     Args:
-        data (Any): Data to be saved in binary format
-        path (Path): The file path to save the binary file
+        data (Any): data to be saved as binary
+        path (Path): path to binary file
     """
-    joblib.dump(value=data, filename=path)  # Save data as binary using joblib
-    logger.info(f"binary file saved at: {path}")  # Log successful save
+    joblib.dump(value=data, filename=path)
+    logger.info(f"binary file saved at: {path}")
 
 
-# Define a function to load data from a binary file
 @ensure_annotations
 def load_bin(path: Path) -> Any:
-    """Loads binary data from a file.
+    """load binary data
 
     Args:
-        path (Path): The file path to the binary file
+        path (Path): path to binary file
 
     Returns:
-        Any: The loaded binary data
+        Any: object stored in the file
     """
-    data = joblib.load(path)  # Load binary data
-    logger.info(f"binary file loaded from: {path}")  # Log successful load
+    data = joblib.load(path)
+    logger.info(f"binary file loaded from: {path}")
     return data
 
-
-# Define a function to get the size of a file in KB
 @ensure_annotations
 def get_size(path: Path) -> str:
-    """Gets the file size in KB.
+    """get size in KB
 
     Args:
-        path (Path): The file path
+        path (Path): path of the file
 
     Returns:
-        str: The file size in KB
+        str: size in KB
     """
-    size_in_kb = round(os.path.getsize(path) / 1024)  # Get size in KB by dividing by 1024
-    return f"~ {size_in_kb} KB"  # Return formatted size string
+    size_in_kb = round(os.path.getsize(path)/1024)
+    return f"~ {size_in_kb} KB"
 
 
-# Define a function to decode a base64-encoded image string and save it to a file
 def decodeImage(imgstring, fileName):
-    imgdata = base64.b64decode(imgstring)  # Decode base64 image string
-    with open(fileName, 'wb') as f:  # Open file in binary write mode
-        f.write(imgdata)  # Write decoded data to file
-        f.close()  # Close the file
+    imgdata = base64.b64decode(imgstring)
+    with open(fileName, 'wb') as f:
+        f.write(imgdata)
+        f.close()
 
 
-# Define a function to encode an image file into a base64 string
 def encodeImageIntoBase64(croppedImagePath):
-    with open(croppedImagePath, "rb") as f:  # Open image file in binary read mode
-        return base64.b64encode(f.read())  # Encode file content to base64 and return
+    with open(croppedImagePath, "rb") as f:
+        return base64.b64encode(f.read())
+
