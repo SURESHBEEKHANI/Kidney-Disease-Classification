@@ -2,8 +2,8 @@ import os
 import urllib.request as request
 from zipfile import ZipFile
 import tensorflow as tf
-from pathlib import Path
 from cnnClassifier.entity.config_entity import PrepareBaseModelConfig
+from pathlib import Path
 
 class PrepareBaseModel:
     def __init__(self, config: PrepareBaseModelConfig):
@@ -25,16 +25,15 @@ class PrepareBaseModel:
     def _prepare_full_model(model, classes, freeze_all, freeze_till, learning_rate):
         if freeze_all:
             for layer in model.layers:
-                layer.trainable = False
+                model.trainable = False
         elif (freeze_till is not None) and (freeze_till > 0):
             for layer in model.layers[:-freeze_till]:
-                layer.trainable = False
+                model.trainable = False
 
-        # Adjustments for binary classification
         flatten_in = tf.keras.layers.Flatten()(model.output)
         prediction = tf.keras.layers.Dense(
-            units=1,                   # Single unit for binary classification
-            activation="sigmoid"        # Sigmoid activation for binary output
+            units=classes,
+            activation="softmax"
         )(flatten_in)
 
         full_model = tf.keras.models.Model(
@@ -42,10 +41,9 @@ class PrepareBaseModel:
             outputs=prediction
         )
 
-        # Use BinaryCrossentropy for binary classification
         full_model.compile(
             optimizer=tf.keras.optimizers.SGD(learning_rate=learning_rate),
-            loss=tf.keras.losses.BinaryCrossentropy(),  # Binary cross-entropy
+            loss=tf.keras.losses.CategoricalCrossentropy(),
             metrics=["accuracy"]
         )
 
